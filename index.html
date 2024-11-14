@@ -29,7 +29,7 @@
             border-radius: 15px;
             background: rgba(0, 0, 0, 0.2);
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
+            max-width: 80%;
             width: 100%;
         }
 
@@ -84,43 +84,46 @@
             "10-12", // Nossa Senhora Aparecida
             "11-02", // Finados
             "11-15", // Proclamação da República
+            "11-20", // Consciência Negra
             "12-25", // Natal
         ];
 
-        // Função para encontrar o próximo feriado em UTC
-        function proximoFeriadoUTC() {
-            const hojeUTC = new Date(new Date().toISOString()); // Garante a data em UTC
-            const anoAtual = hojeUTC.getUTCFullYear();
-            
+        // Função para encontrar o próximo feriado no horário de Brasília
+        function proximoFeriado() {
+            const agora = new Date();
+            const anoAtual = agora.getUTCFullYear();
+
             for (let data of feriados) {
                 const [mes, dia] = data.split("-");
-                const feriadoDataUTC = new Date(Date.UTC(anoAtual, mes - 1, dia));
-                
+                const feriadoData = new Date(Date.UTC(anoAtual, mes - 1, dia, 3)); // UTC-3 ajustado para Brasília
+
                 // Se o feriado ainda não passou neste ano, retorna a data
-                if (feriadoDataUTC > hojeUTC) {
-                    return feriadoDataUTC;
+                if (feriadoData > agora) {
+                    return feriadoData;
                 }
             }
-            // Se todos os feriados já passaram, pega o primeiro feriado do próximo ano
+
+            // Se todos os feriados já passaram, retorna o primeiro feriado do próximo ano
             const [primeiroMes, primeiroDia] = feriados[0].split("-");
-            return new Date(Date.UTC(anoAtual + 1, primeiroMes - 1, primeiroDia));
+            return new Date(Date.UTC(anoAtual + 1, primeiroMes - 1, primeiroDia, 3)); // UTC-3 ajustado para o próximo ano
         }
 
         // Função para atualizar o timer
         function atualizarTimer() {
-            const proximoFeriado = proximoFeriadoUTC();
-            const agoraUTC = new Date(new Date().toISOString()); // Hora atual em UTC
+            const proximoFeriadoData = proximoFeriado();
+            const agora = new Date();
 
             // Calcula o tempo restante em milissegundos
-            const restanteMs = proximoFeriado - agoraUTC;
+            const restanteMs = proximoFeriadoData - agora;
 
-            // Converte o restante em horas, minutos e segundos, ajustando para UTC-3
-            const horas = Math.floor(restanteMs / (1000 * 60 * 60)) - 3; // Ajuste final para UTC-3
+            // Converte o restante em dias, horas, minutos e segundos
+            const dias = Math.floor(restanteMs / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((restanteMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutos = Math.floor((restanteMs % (1000 * 60 * 60)) / (1000 * 60));
             const segundos = Math.floor((restanteMs % (1000 * 60)) / 1000);
 
             document.getElementById("timer").textContent = 
-                `Faltam ${horas}h ${minutos}m ${segundos}s para o próximo feriado!`;
+                `Faltam ${dias}d ${horas}h ${minutos}m ${segundos}s para o próximo feriado!`;
         }
 
         // Atualiza o timer a cada segundo
