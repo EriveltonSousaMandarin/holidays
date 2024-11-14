@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contagem Regressiva para o Feriado</title>
+    <style>
+        /* Estilização da página */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: #ffffff;
+        }
+
+        /* Container do timer */
+        .timer-container {
+            text-align: center;
+            padding: 40px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .timer-container h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* Estilo do timer */
+        #timer {
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        /* Efeitos de animação */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
+
+        .timer-container h1 {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        <h1>Tempo para o próximo feriado</h1>
+        <div id="timer">Carregando...</div>
+    </div>
+
+    <script>
+        // Lista de feriados no formato "Mês-Dia"
+        const feriados = [
+            "01-01", // Ano Novo
+            "04-21", // Tiradentes
+            "05-01", // Dia do Trabalhador
+            "09-07", // Independência do Brasil
+            "10-12", // Nossa Senhora Aparecida
+            "11-02", // Finados
+            "11-15", // Proclamação da República
+            "12-25", // Natal
+        ];
+
+        // Função para encontrar o próximo feriado em UTC
+        function proximoFeriadoUTC() {
+            const hojeUTC = new Date(new Date().toISOString()); // Garante a data em UTC
+            const anoAtual = hojeUTC.getUTCFullYear();
+            
+            for (let data of feriados) {
+                const [mes, dia] = data.split("-");
+                const feriadoDataUTC = new Date(Date.UTC(anoAtual, mes - 1, dia));
+                
+                // Se o feriado ainda não passou neste ano, retorna a data
+                if (feriadoDataUTC > hojeUTC) {
+                    return feriadoDataUTC;
+                }
+            }
+            // Se todos os feriados já passaram, pega o primeiro feriado do próximo ano
+            const [primeiroMes, primeiroDia] = feriados[0].split("-");
+            return new Date(Date.UTC(anoAtual + 1, primeiroMes - 1, primeiroDia));
+        }
+
+        // Função para atualizar o timer
+        function atualizarTimer() {
+            const proximoFeriado = proximoFeriadoUTC();
+            const agoraUTC = new Date(new Date().toISOString()); // Hora atual em UTC
+
+            // Calcula o tempo restante em milissegundos
+            const restanteMs = proximoFeriado - agoraUTC;
+
+            // Converte o restante em horas, minutos e segundos, ajustando para UTC-3
+            const horas = Math.floor(restanteMs / (1000 * 60 * 60)) - 3; // Ajuste final para UTC-3
+            const minutos = Math.floor((restanteMs % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((restanteMs % (1000 * 60)) / 1000);
+
+            document.getElementById("timer").textContent = 
+                `Faltam ${horas}h ${minutos}m ${segundos}s para o próximo feriado!`;
+        }
+
+        // Atualiza o timer a cada segundo
+        setInterval(atualizarTimer, 1000);
+    </script>
+</body>
+</html>
